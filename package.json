@@ -1,8 +1,8 @@
 {
-    "version": "1.0.0",
-    "name": "jf-factory",
+    "version": "2.0.0",
+    "name": "@jf/factory",
     "author": "Joaquín Fernández",
-    "description": "Simple class factory and registry for making use of dependency injection.",
+    "description": "Simple class factory and registry for using with dependency injection.",
     "keywords": [
         "class",
         "factory",
@@ -10,9 +10,17 @@
         "OOP"
     ],
     "license": "MIT",
+    "main": "src/Factory.js",
     "homepage": "http://www.joaquinfernandez.net",
     "repository": {
         "type": "git",
         "url": "https://github.com/joaquinfq/jfFactory"
+    },
+    "devDependencies": {
+        "@jf/tests": "0.0.3",
+        "nyc": "^13.3.0"
+    },
+    "scripts": {
+        "test": "nyc --reporter=text --all --include=src/** jf-tests"
     }
 }

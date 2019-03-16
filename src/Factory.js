@@ -4,7 +4,7 @@
  *
  * @type {Object}
  */
-let instances = {};
+const instances = {};
 /**
  * Clase usada como una factoría de instancias.
  * Se pueden crear distintas instancias para manejar diferentes registros.
@@ -14,7 +14,7 @@ let instances = {};
  * @namespace jf
  * @class     jf.Factory
  */
-module.exports = class Factory
+class jfFactory
 {
     /**
      * Constructor de la clase.
@@ -45,6 +45,22 @@ module.exports = class Factory
          * @internal
          */
         this.$$registry = {};
+    }
+
+    /**
+     * Permite limpiar el registro para liberar la memoria al eliminar las referencias.
+     *
+     * @method clear
+     *
+     * @param {String} method Nombre del método que se llamará en cada clase registrada antes de eliminarse.
+     *                        Si retorna `false` no se elimina del registro.
+     */
+    clear(method = '')
+    {
+        for (const _name of Object.keys(this.$$registry))
+        {
+            this.unregister(_name, method);
+        }
     }
 
     /**
@@ -86,34 +102,6 @@ module.exports = class Factory
     }
 
     /**
-     * Permite limpiar el registro para liberar la memoria al eliminar las referencias.
-     *
-     * @method clear
-     *
-     * @param {String} method Nombre del método que se llamará en cada clase registrada antes de eliminarse.
-     *                        Si retorna `false` no se elimina del registro.
-     */
-    clear(method = '')
-    {
-        if (method)
-        {
-            const _registry = this.$$registry;
-            for (const _name of Object.keys(_registry))
-            {
-                const _Class = _registry[_name];
-                if (typeof _Class[_name] === 'function' && _Class[_name]() !== false)
-                {
-                    delete _registry[_name];
-                }
-            }
-        }
-        else
-        {
-            this.$$registry = {};
-        }
-    }
-
-    /**
      * Devuelve la referencia de la clase que corresponde con el nombre especificado.
      *
      * @method get
@@ -135,7 +123,7 @@ module.exports = class Factory
      */
     register(name, Class)
     {
-        this.$$registry[name] = Class;
+        this.$$registry[name || Class.name] = Class;
     }
 
     /**
@@ -143,11 +131,21 @@ module.exports = class Factory
      *
      * @method unregister
      *
-     * @param {String} name Nombre con el que se registró la clase.
+     * @param {String} name   Nombre con el que se registró la clase.
+     * @param {String} method Nombre del método que se llamará en cada clase registrada antes de eliminarse.
+     *                        Si retorna `false` no se elimina del registro.
      */
-    unregister(name)
+    unregister(name, method = '')
     {
-        delete this.$$registry[name];
+        const _registry = this.$$registry;
+        if (name in _registry)
+        {
+            const _Class = _registry[name];
+            if (typeof _Class[method] !== 'function' || _Class[method]() !== false)
+            {
+                delete _registry[name];
+            }
+        }
     }
 
     /**
@@ -166,9 +164,11 @@ module.exports = class Factory
     {
         if (!(name in instances))
         {
-            instances[name] = new Factory();
+            instances[name] = new jfFactory();
         }
 
         return instances[name];
     }
-};
+}
+
+module.exports = jfFactory;

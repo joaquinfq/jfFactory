@@ -1,8 +1,8 @@
-# jfFactory [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
+# @jf/factory [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
 
-[![npm install jf-factory](https://nodei.co/npm/jf-factory.png?compact=true)](https://npmjs.org/package/jf-factory/)
+[![npm install @jf/factory](https://nodei.co/npm/@jf/factory.png?compact=true)](https://npmjs.org/package/@jf/factory/)
 
-Simple class factory and registry for making use of dependency injection.
+Simple class factory and registry for using with dependency injection.
 
 ## Usage
 
