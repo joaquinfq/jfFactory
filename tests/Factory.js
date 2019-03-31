@@ -81,6 +81,10 @@ module.exports = class jfFactoryTest extends jfTestsUnit
                 this._assert('', _data[method], _params);
             }
         );
+        // Propiedad `factory`.
+        this.assertUndefined(_obj.factory);
+        _sut.attach(_obj, ['factory']);
+        this.assertTrue(_obj.factory === _sut);
     }
 
     /**

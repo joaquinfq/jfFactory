@@ -5,6 +5,7 @@
  * @type {Object}
  */
 const instances = {};
+
 /**
  * Clase usada como una factoría de instancias.
  * Se pueden crear distintas instancias para manejar diferentes registros.
@@ -54,19 +55,40 @@ class jfFactory
      * @param {object}   obj     Objeto que recibirá los métodos.
      * @param {string[]} methods Listado de métodos a agregar.
      */
-    attach(obj, methods = [ 'create', 'register' ])
+    attach(obj, methods = ['create', 'register'])
     {
         if (obj)
         {
             methods.forEach(
                 method =>
                 {
-                    if (typeof this[method] === 'function')
+                    if (method === 'factory')
                     {
-                        obj[method] = this[method].bind(this);
+                        Object.defineProperty(
+                            obj,
+                            'factory',
+                            {
+                                enumerable   : false,
+                                configurable : false,
+                                get          : function() { return this }.bind(this)
+                            }
+                        );
+                    }
+                    else if (typeof this[method] === 'function')
+                    {
+                        Object.defineProperty(
+                            obj,
+                            method,
+                            {
+                                enumerable   : false,
+                                configurable : false,
+                                writable     : false,
+                                value        : this[method].bind(this)
+                            }
+                        );
                     }
                 }
-            )
+            );
         }
     }
 
@@ -120,7 +142,6 @@ class jfFactory
                 _instance = new _Class(config);
             }
         }
-
         return _instance;
     }
 
@@ -189,7 +210,6 @@ class jfFactory
         {
             instances[name] = new jfFactory();
         }
-
         return instances[name];
     }
 }

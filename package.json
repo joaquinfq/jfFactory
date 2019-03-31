@@ -1,5 +1,5 @@
 {
-    "version": "2.1.0",
+    "version": "2.1.1",
     "name": "@jf/factory",
     "author": "Joaquín Fernández",
     "description": "Simple class factory and registry for using with dependency injection.",
