@@ -48,6 +48,29 @@ class jfFactory
     }
 
     /**
+     * Agrega al objeto los métodos de la factoría especificados con el contexto
+     * establecido a la factoría.
+     *
+     * @param {object}   obj     Objeto que recibirá los métodos.
+     * @param {string[]} methods Listado de métodos a agregar.
+     */
+    attach(obj, methods = [ 'create', 'register' ])
+    {
+        if (obj)
+        {
+            methods.forEach(
+                method =>
+                {
+                    if (typeof this[method] === 'function')
+                    {
+                        obj[method] = this[method].bind(this);
+                    }
+                }
+            )
+        }
+    }
+
+    /**
      * Permite limpiar el registro para liberar la memoria al eliminar las referencias.
      *
      * @method clear

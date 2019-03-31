@@ -1,5 +1,5 @@
 {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "name": "@jf/factory",
     "author": "Joaquín Fernández",
     "description": "Simple class factory and registry for using with dependency injection.",
@@ -17,7 +17,7 @@
         "url": "https://github.com/joaquinfq/jfFactory"
     },
     "devDependencies": {
-        "@jf/tests": "0.0.3",
+        "@jf/tests": "^1.0.0",
         "nyc": "^13.3.0"
     },
     "scripts": {

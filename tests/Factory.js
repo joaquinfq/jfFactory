@@ -22,6 +22,24 @@ module.exports = class jfFactoryTest extends jfTestsUnit
     }
 
     /**
+     * Registra una clase con diferentes nombres.
+     *
+     * @param {function} Class Referencia de la clase a registrar.
+     *
+     * @return {string[]} Listado de nombres con los que se registró la clase.
+     */
+    registerNames(Class)
+    {
+        const _sut   = this.sut;
+        const _names = this.generateNumbers().map(String);
+        _names.forEach(name => _sut.register(name, Class));
+        _names.forEach(name => this.assertTrue(_sut.get(name) === Class));
+        this._assert('', Object.keys(_sut.$$registry), _names);
+
+        return _names;
+    }
+
+    /**
      * @override
      */
     setUp()
@@ -30,15 +48,50 @@ module.exports = class jfFactoryTest extends jfTestsUnit
     }
 
     /**
+     * Pruebas del método `attach`.
+     */
+    testAttach()
+    {
+        const _obj     = {};
+        const _methods = [ 'create', 'get', 'register'];
+        const _self    = this;
+        const _sut     = this.sut;
+        const _data    = {};
+        _methods.forEach(
+            method => _sut[method] = function (...args)
+            {
+                _data[method] = args;
+                // Verificamos el cambio de contexto.
+                _self.assertTrue(this === _sut);
+            }
+        );
+        // Verificamos que no pase nada sin no hay parámetros.
+        _sut.attach();
+        // Verificamos que no pase nada si se especifica un método que no exista.
+        const _method = Date.now();
+        _sut.attach(_obj, ['abc']);
+        this.assertUndefined(_data[_method]);
+        // Especificamos el objeto.
+        _sut.attach(_obj, _methods);
+        _methods.forEach(
+            method =>
+            {
+                const _params = this.generateNumbers();
+                _obj[method](..._params);
+                this._assert('', _data[method], _params);
+            }
+        );
+    }
+
+    /**
      * Pruebas del método `clear` sin parámetro `method`.
      */
     testClear()
     {
         const _sut   = this.sut;
-        const _names = ['Clear1', 'Clear2', 'Clear3'];
-        _names.forEach(name => _sut.register(name, TestClass));
-        this._assert('', Object.keys(_sut.$$registry), _names);
+        const _names = this.registerNames(TestClass);
         _sut.clear();
+        _names.forEach(name => this.assertUndefined(_sut.get(name)));
         this._assert('', _sut.$$registry, {});
     }
 
@@ -56,27 +109,10 @@ module.exports = class jfFactoryTest extends jfTestsUnit
             }
         };
         const _sut   = this.sut;
-        const _names = ['ClearWithMethod1', 'ClearWithMethod2', 'ClearWithMethod3'];
-        _names.forEach(name => _sut.register(name, _Class));
-        this._assert('', Object.keys(_sut.$$registry), _names);
+        const _names = this.registerNames(_Class);
         _sut.clear('destroy');
         this._assert('', _sut.$$registry, {});
-        this._assert('', _calls, _names.length);
-    }
-
-    /**
-     * Pruebas del método `constructor`.
-     */
-    testConstructor()
-    {
-        const _sut      = this.sut;
-        const _expected = {
-            initMethod : '',
-            $$registry : {}
-        };
-        const _keys     = Object.keys(_expected);
-        this._assert('', Object.keys(_sut), _keys);
-        _keys.forEach(key => this._assert('', _sut[key], _expected[key]));
+        this.assertEqual(_calls, _names.length);
     }
 
     /**
@@ -95,25 +131,25 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         const _sut      = this.sut;
         _sut.register('Create', TestClass);
         //------------------------------------------------------------------------------
-        this._assert('', _sut.create(), undefined);
+        this.assertUndefined(_sut.create());
         //------------------------------------------------------------------------------
         // Creación de una instancia a partir de una clase.
         //------------------------------------------------------------------------------
         let _instance = _sut.create(_Class);
-        this._assert('ok', _instance instanceof _Class);
-        this._assert('', _lastConfig, undefined);
+        this.assertTrue(_instance instanceof _Class);
+        this.assertUndefined(_lastConfig);
         //------------------------------------------------------------------------------
         // Creación de una instancia a partir del nombre de una clase.
         //------------------------------------------------------------------------------
         _instance = _sut.create('Create');
-        this._assert('ok', _instance instanceof TestClass);
-        this._assert('', _lastConfig, undefined);
+        this.assertTrue(_instance instanceof TestClass);
+        this.assertUndefined(_lastConfig);
         //------------------------------------------------------------------------------
         // Creación de una instancia a partir de una clase usando una configuración.
         //------------------------------------------------------------------------------
         const _config = { a : 1 };
         _instance     = _sut.create(_Class, _config);
-        this._assert('ok', _instance instanceof _Class);
+        this.assertTrue(_instance instanceof _Class);
         this._assert('', _lastConfig, _config);
         //------------------------------------------------------------------------------
         // Verificamos que no falle con un initMethod que no es una función.
@@ -121,8 +157,8 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         _lastConfig     = null;
         _sut.initMethod = 'init';
         _instance       = _sut.create(_Class);
-        this._assert('ok', _instance instanceof _Class);
-        this._assert('', _lastConfig, undefined);
+        this.assertTrue(_instance instanceof _Class);
+        this.assertUndefined(_lastConfig);
     }
 
     /**
@@ -142,19 +178,34 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         _sut.initMethod = 'init';
         _sut.register('CreateWithInitMethod', _Class);
         //------------------------------------------------------------------------------
-        this._assert('', _sut.create(), undefined);
+        this.assertUndefined(_sut.create());
         //------------------------------------------------------------------------------
         // Creación de una instancia a partir de una clase.
         //------------------------------------------------------------------------------
         let _instance = _sut.create(_Class);
-        this._assert('ok', _instance instanceof _Class);
-        this._assert('', _initCalls, 1);
+        this.assertTrue(_instance instanceof _Class);
+        this.assertEqual(_initCalls, 1);
         //------------------------------------------------------------------------------
         // Creación de una instancia a partir del nombre de una clase.
         //------------------------------------------------------------------------------
         _instance = _sut.create('CreateWithInitMethod');
-        this._assert('ok', _instance instanceof _Class);
-        this._assert('', _initCalls, 2);
+        this.assertTrue(_instance instanceof _Class);
+        this.assertEqual(_initCalls, 2);
+    }
+
+    /**
+     * Comprueba la definición de la clase.
+     */
+    testDefinition()
+    {
+        this._testDefinition(
+            jfFactory,
+            null,
+            {
+                initMethod : '',
+                $$registry : {}
+            }
+        );
     }
 
     /**
@@ -162,10 +213,7 @@ module.exports = class jfFactoryTest extends jfTestsUnit
      */
     testGet()
     {
-        const _sut = this.sut;
-        _sut.register('Class', TestClass);
-        this._assert('', _sut.get('Class'), TestClass);
-        _sut.clear();
+        this.registerNames(TestClass);
     }
 
     /**
@@ -178,7 +226,8 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         this._assert('', _sut.get('Class'), TestClass);
         _sut.register('', TestClass);
         this._assert('', _sut.get('TestClass'), TestClass);
-        _sut.clear();
+        _sut.register('TestClass', String);
+        this._assert('', _sut.get('TestClass'), String);
     }
 
     /**
@@ -187,13 +236,13 @@ module.exports = class jfFactoryTest extends jfTestsUnit
     testStaticI()
     {
         let _sut0 = jfFactory.i();
-        this._assert('ok', _sut0 instanceof jfFactory);
+        this.assertTrue(_sut0 instanceof jfFactory);
         let _sut1 = jfFactory.i();
-        this._assert('ok', _sut1 instanceof jfFactory);
-        this._assert('ok', _sut0 === _sut1);
+        this.assertTrue(_sut1 instanceof jfFactory);
+        this.assertTrue(_sut0 === _sut1);
         _sut1 = jfFactory.i('');
-        this._assert('ok', _sut1 instanceof jfFactory);
-        this._assert('ok', _sut0 === _sut1);
+        this.assertTrue(_sut1 instanceof jfFactory);
+        this.assertTrue(_sut0 === _sut1);
     }
 
     /**
@@ -203,10 +252,10 @@ module.exports = class jfFactoryTest extends jfTestsUnit
     {
         const _name = Math.random();
         let _sut0   = jfFactory.i(_name);
-        this._assert('ok', _sut0 instanceof jfFactory);
+        this.assertTrue(_sut0 instanceof jfFactory);
         let _sut1 = jfFactory.i(_name + 1);
-        this._assert('ok', _sut1 instanceof jfFactory);
-        this._assert('ok', _sut0 !== _sut1);
+        this.assertTrue(_sut1 instanceof jfFactory);
+        this.assertTrue(_sut0 !== _sut1);
         this._assert('', jfFactory.i(_name), _sut0);
         this._assert('', jfFactory.i(_name + 1), _sut1);
     }
@@ -217,16 +266,15 @@ module.exports = class jfFactoryTest extends jfTestsUnit
     testUnregister()
     {
         const _sut   = this.sut;
-        const _names = ['Unregister1', 'Unregister2', 'Unregister3'];
-        _names.forEach(name => _sut.register(name, TestClass));
-        this._assert('', Object.keys(_sut.$$registry), _names);
+        const _names = this.registerNames(TestClass);
         for (let _i = 0; _i < _names.length; ++_i)
         {
+            const _name = _names[_i];
             // Nombre inexistente
-            _sut.unregister(_names[_i] + _names[_i]);
+            _sut.unregister(_name + _name);
             this._assert('', Object.keys(_sut.$$registry), _names.slice(_i));
             // Nombre existente
-            _sut.unregister(_names[_i]);
+            _sut.unregister(_name);
             this._assert('', Object.keys(_sut.$$registry), _names.slice(_i + 1));
         }
     }
@@ -251,10 +299,8 @@ module.exports = class jfFactoryTest extends jfTestsUnit
             }
         };
         const _sut    = this.sut;
-        const _names  = ['UnregisterWithMethod1', 'UnregisterWithMethod2', 'UnregisterWithMethod3'];
+        const _names  = this.registerNames(_Class);
         const _length = _names.length;
-        _names.forEach(name => _sut.register(name, _Class));
-        this._assert('', Object.keys(_sut.$$registry), _names);
         //------------------------------------------------------------------------------
         // Verificación de que si el método devuelve `false` no se elimine el registro.
         //------------------------------------------------------------------------------
@@ -263,7 +309,7 @@ module.exports = class jfFactoryTest extends jfTestsUnit
             _sut.unregister(_names[_i], 'nodestroy');
             this._assert('', Object.keys(_sut.$$registry), _names);
         }
-        this._assert('', _calls, _length);
+        this.assertEqual(_calls, _length);
         //------------------------------------------------------------------------------
         // Verificación de que si el método no devuelve `false` se elimine el registro.
         //------------------------------------------------------------------------------
@@ -272,6 +318,6 @@ module.exports = class jfFactoryTest extends jfTestsUnit
             _sut.unregister(_names[_i], 'destroy');
             this._assert('', Object.keys(_sut.$$registry), _names.slice(_i + 1));
         }
-        this._assert('', _calls, _length * 2);
+        this.assertEqual(_calls, _length * 2);
     }
 };
