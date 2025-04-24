@@ -1,4 +1,4 @@
 *.log
-.nyc_output
+.tmp
 npm-debug.log*
 node_modules

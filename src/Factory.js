@@ -15,47 +15,43 @@ const instances = {};
  * @namespace jf
  * @class     jf.Factory
  */
-class jfFactory
+export default class jfFactory
 {
     /**
-     * Constructor de la clase.
+     * Clases registradas en la factoría.
      *
-     * @constructor
+     * @type {object}
+     */
+    #registry = {};
+
+    /**
+     * Constructor de la clase.
      */
     constructor()
     {
         /**
-         * Nombre del método de inicialización a llamar cuando se pase
-         * una configuración al método `build`.
+         * Nombre del método de inicialización a llamar cuando se pase una configuración al método `build`.
          *
-         * Usando `babel` las subclases que hacen uso del plugin
-         * `babel-plugin-transform-class-properties` no pueden asignar
-         * los valores recibidos en el constructor ya que se asignan
-         * las propiedades usando este plugin después de asignar esos
-         * valores y se pierden la asignación anterior.
+         * Usando versiones antiguas de `babel` las subclases que hacen uso del plugin
+         * `babel-plugin-transform-class-properties` no pueden asignar los valores recibidos
+         * en el constructor ya que se asignan las propiedades usando este plugin después de
+         * asignar esos valores y se pierden la asignación anterior.
          *
          * @property initMethod
-         * @type     {String}
+         * @type     {string}
          */
         this.initMethod = '';
-        /**
-         * Registro de clases.
-         *
-         * @property $$registry
-         * @type     {Object}
-         * @internal
-         */
-        this.$$registry = {};
     }
 
     /**
-     * Agrega al objeto los métodos de la factoría especificados con el contexto
-     * establecido a la factoría.
+     * Agrega al objeto los métodos de la factoría especificados con el contexto establecido a la factoría.
+     *
+     * @method attach
      *
      * @param {object}   obj     Objeto que recibirá los métodos.
      * @param {string[]} methods Listado de métodos a agregar.
      */
-    attach(obj, methods = ['create', 'register'])
+    attach(obj, methods = [ 'create', 'register' ])
     {
         if (obj)
         {
@@ -70,7 +66,10 @@ class jfFactory
                             {
                                 enumerable   : false,
                                 configurable : false,
-                                get          : function() { return this }.bind(this)
+                                get          : function ()
+                                {
+                                    return this;
+                                }.bind(this)
                             }
                         );
                     }
@@ -97,12 +96,12 @@ class jfFactory
      *
      * @method clear
      *
-     * @param {String} method Nombre del método que se llamará en cada clase registrada antes de eliminarse.
+     * @param {string} method Nombre del método que se llamará en cada clase registrada antes de eliminarse.
      *                        Si retorna `false` no se elimina del registro.
      */
     clear(method = '')
     {
-        for (const _name of Object.keys(this.$$registry))
+        for (const _name of Object.keys(this.#registry))
         {
             this.unregister(_name, method);
         }
@@ -113,10 +112,10 @@ class jfFactory
      *
      * @method create
      *
-     * @param {String} name   Nombre con el que se ha registrado la clase.
+     * @param {string} name   Nombre con el que se ha registrado la clase.
      * @param {*?}     config Configuración a aplicar a la nueva instancia.
      *
-     * @return {Class} Instancia de la clase construida o `undefined` si no existe la clase.
+     * @return {object|undefined} Instancia de la clase construida o `undefined` si no existe la clase.
      */
     create(name, config)
     {
@@ -142,6 +141,7 @@ class jfFactory
                 _instance = new _Class(config);
             }
         }
+
         return _instance;
     }
 
@@ -150,11 +150,11 @@ class jfFactory
      *
      * @method get
      *
-     * @param {String} name Nombre que hace referencia a la clase que se desea recuperar.
+     * @param {string} name Nombre que hace referencia a la clase que se desea recuperar.
      */
     get(name)
     {
-        return this.$$registry[name];
+        return this.#registry[name];
     }
 
     /**
@@ -167,7 +167,19 @@ class jfFactory
      */
     register(name, Class)
     {
-        this.$$registry[name || Class.name] = Class;
+        this.#registry[name || Class.name] = Class;
+    }
+
+    /**
+     * Devuelve una copia del registro.
+     *
+     * @method register
+     *
+     * @return {object}
+     */
+    registry()
+    {
+        return { ...this.#registry };
     }
 
     /**
@@ -181,7 +193,7 @@ class jfFactory
      */
     unregister(name, method = '')
     {
-        const _registry = this.$$registry;
+        const _registry = this.#registry;
         if (name in _registry)
         {
             const _Class = _registry[name];
@@ -200,7 +212,7 @@ class jfFactory
      *
      * @param {String} name Nombre de la factoría a construir.
      *
-     * @return {Factory}
+     * @return {jf.Factory}
      *
      * @static
      */
@@ -210,8 +222,7 @@ class jfFactory
         {
             instances[name] = new jfFactory();
         }
+
         return instances[name];
     }
 }
-
-module.exports = jfFactory;

@@ -1,26 +1,27 @@
 {
-    "version": "2.1.1",
-    "name": "@jf/factory",
     "author": "Joaquín Fernández",
     "description": "Simple class factory and registry for using with dependency injection.",
+    "homepage": "http://www.joaquinfernandez.net",
+    "license": "MIT",
+    "main": "src/Factory.js",
+    "name": "@jf/factory",
+    "type": "module",
+    "version": "3.0.0",
+    "devDependencies": {
+        "c8": "^10.1",
+        "@jf/tests": "^2.0"
+    },
     "keywords": [
         "class",
         "factory",
         "registry",
         "OOP"
     ],
-    "license": "MIT",
-    "main": "src/Factory.js",
-    "homepage": "http://www.joaquinfernandez.net",
     "repository": {
         "type": "git",
         "url": "https://github.com/joaquinfq/jfFactory"
     },
-    "devDependencies": {
-        "@jf/tests": "^1.0.0",
-        "nyc": "^13.3.0"
-    },
     "scripts": {
-        "test": "nyc --reporter=text --all --include=src/** jf-tests"
+        "test": "c8 --reporter=text --all --include=src/** -o .tmp jf-tests"
     }
 }

@@ -1,5 +1,5 @@
-const jfFactory   = require('../src/Factory.js');
-const jfTestsUnit = require('@jf/tests/src/type/Unit');
+import jfFactory   from '../src/Factory.js';
+import jfTestsUnit from '@jf/tests/src/type/Unit.js';
 
 /**
  * Clase de prueba para registrar en la factoría.
@@ -11,7 +11,7 @@ class TestClass
 /**
  * Pruebas unitarias de la clase `jf.Factory`.
  */
-module.exports = class jfFactoryTest extends jfTestsUnit
+export default class jfFactoryTest extends jfTestsUnit
 {
     /**
      * @override
@@ -34,7 +34,7 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         const _names = this.generateNumbers().map(String);
         _names.forEach(name => _sut.register(name, Class));
         _names.forEach(name => this.assertTrue(_sut.get(name) === Class));
-        this._assert('', Object.keys(_sut.$$registry), _names);
+        this._assert('', Object.keys(_sut.registry()), _names);
 
         return _names;
     }
@@ -96,7 +96,7 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         const _names = this.registerNames(TestClass);
         _sut.clear();
         _names.forEach(name => this.assertUndefined(_sut.get(name)));
-        this._assert('', _sut.$$registry, {});
+        this._assert('', _sut.registry(), {});
     }
 
     /**
@@ -115,7 +115,7 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         const _sut   = this.sut;
         const _names = this.registerNames(_Class);
         _sut.clear('destroy');
-        this._assert('', _sut.$$registry, {});
+        this._assert('', _sut.registry(), {});
         this.assertEqual(_calls, _names.length);
     }
 
@@ -202,14 +202,7 @@ module.exports = class jfFactoryTest extends jfTestsUnit
      */
     testDefinition()
     {
-        this._testDefinition(
-            jfFactory,
-            null,
-            {
-                initMethod : '',
-                $$registry : {}
-            }
-        );
+        this._testDefinition(jfFactory, null, { initMethod : '' });
     }
 
     /**
@@ -276,10 +269,10 @@ module.exports = class jfFactoryTest extends jfTestsUnit
             const _name = _names[_i];
             // Nombre inexistente
             _sut.unregister(_name + _name);
-            this._assert('', Object.keys(_sut.$$registry), _names.slice(_i));
+            this._assert('', Object.keys(_sut.registry()), _names.slice(_i));
             // Nombre existente
             _sut.unregister(_name);
-            this._assert('', Object.keys(_sut.$$registry), _names.slice(_i + 1));
+            this._assert('', Object.keys(_sut.registry()), _names.slice(_i + 1));
         }
     }
 
@@ -311,7 +304,7 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         for (let _i = 0; _i < _length; ++_i)
         {
             _sut.unregister(_names[_i], 'nodestroy');
-            this._assert('', Object.keys(_sut.$$registry), _names);
+            this._assert('', Object.keys(_sut.registry()), _names);
         }
         this.assertEqual(_calls, _length);
         //------------------------------------------------------------------------------
@@ -320,7 +313,7 @@ module.exports = class jfFactoryTest extends jfTestsUnit
         for (let _i = 0; _i < _length; ++_i)
         {
             _sut.unregister(_names[_i], 'destroy');
-            this._assert('', Object.keys(_sut.$$registry), _names.slice(_i + 1));
+            this._assert('', Object.keys(_sut.registry()), _names.slice(_i + 1));
         }
         this.assertEqual(_calls, _length * 2);
     }
